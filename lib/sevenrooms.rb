@@ -11,14 +11,19 @@ module Sevenrooms
   class APIError < Error; end
 
   class << self
-    attr_accessor :api_key, :api_url
+    attr_accessor :client_id, :client_secret, :concierge_id, :api_url
 
     def configure
       yield self
     end
 
     def client
-      @client ||= Client.new(api_key: api_key, api_url: api_url)
+      @client ||= Client.new(
+        client_id: client_id,
+        client_secret: client_secret,
+        concierge_id: concierge_id,
+        api_url: api_url
+      )
     end
   end
 end

@@ -5,8 +5,12 @@ require "json"
 
 module Sevenrooms
   class Client
-    def initialize(api_key:, api_url: "https://api.sevenrooms.com/2_4")
-      @api_key = api_key
+    attr_reader :client_id, :client_secret, :concierge_id, :api_url
+
+    def initialize(client_id:, client_secret:, concierge_id:, api_url: "https://demo.sevenrooms.com/api-ext/2_4")
+      @client_id = client_id
+      @client_secret = client_secret
+      @concierge_id = concierge_id
       @api_url = api_url
       validate_configuration!
     end
@@ -51,9 +55,11 @@ module Sevenrooms
 
     def request(method, path, params = {})
       response = connection.send(method) do |req|
-        req.url path
-        req.headers["Authorization"] = "Bearer #{@api_key}"
-        req.body = params.to_json if [:post, :put].include?(method)
+        req.url path.start_with?('/') ? path[1..-1] : path
+        req.headers["X-Client-Id"] = @client_id
+        req.headers["X-Client-Secret"] = @client_secret
+        req.headers["X-Concierge-Id"] = @concierge_id
+        req.body = params.to_json if [:post, :put, :delete].include?(method) && !params.empty?
       end
 
       handle_response(response)
@@ -62,9 +68,9 @@ module Sevenrooms
     def handle_response(response)
       case response.status
       when 200..299
-        response.body
+        symbolize_keys(response.body)
       when 401
-        raise APIError, "Unauthorized: Invalid API key"
+        raise APIError, "Unauthorized: Invalid credentials"
       when 404
         raise APIError, "Resource not found"
       when 422
@@ -74,8 +80,15 @@ module Sevenrooms
       end
     end
 
+    def symbolize_keys(hash)
+      return hash unless hash.is_a?(Hash)
+      hash.transform_keys(&:to_sym)
+    end
+
     def validate_configuration!
-      raise ConfigurationError, "API key is required" if @api_key.nil? || @api_key.empty?
+      raise ConfigurationError, "Client ID is required" if @client_id.nil? || @client_id.empty?
+      raise ConfigurationError, "Client Secret is required" if @client_secret.nil? || @client_secret.empty?
+      raise ConfigurationError, "Concierge ID is required" if @concierge_id.nil? || @concierge_id.empty?
       raise ConfigurationError, "API URL is required" if @api_url.nil? || @api_url.empty?
     end
   end

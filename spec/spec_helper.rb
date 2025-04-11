@@ -15,8 +15,11 @@ RSpec.configure do |config|
 
   # Reset Sevenrooms configuration before each test
   config.before(:each) do
-    Sevenrooms.api_key = nil
+    Sevenrooms.client_id = nil
+    Sevenrooms.client_secret = nil
+    Sevenrooms.concierge_id = nil
     Sevenrooms.api_url = nil
+    Sevenrooms.instance_variable_set(:@client, nil)
   end
 end
 
