@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 require_relative "sevenrooms/version"
-# require_relative "sevenrooms/client"
+require_relative "sevenrooms/client"
 require_relative "sevenrooms/booking"
-# require_relative "sevenrooms/webhook"
+require_relative "sevenrooms/webhook"
 
 module Sevenrooms
   class Error < StandardError; end
