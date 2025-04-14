@@ -15,16 +15,24 @@ module Sevenrooms
       validate_configuration!
     end
 
-    def create_booking(params)
+    def create_reservation(params)
       post("/reservations", params)
     end
 
-    def update_booking(reservation_id, params)
+    def update_reservation(reservation_id, params)
       put("/reservations/#{reservation_id}", params)
     end
 
-    def cancel_booking(reservation_id, params = {})
+    def cancel_reservation(reservation_id, params = {})
       delete("/reservations/#{reservation_id}", params)
+    end
+
+    def get_reservation(reservation_id)
+      get("/reservations/#{reservation_id}")
+    end
+
+    def list_reservations(params = {})
+      get("/reservations", params)
     end
 
     private
