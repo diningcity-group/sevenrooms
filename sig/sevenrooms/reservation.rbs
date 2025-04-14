@@ -1,0 +1,20 @@
+module Sevenrooms
+  class Reservation
+    attr_reader client: Client
+
+    def initialize: (Client client) -> void
+
+    def create: (Hash[Symbol, untyped] params) -> Hash[Symbol, untyped]
+    def update: (String reservation_id, Hash[Symbol, untyped] params) -> Hash[Symbol, untyped]
+    def cancel: (String reservation_id, ?Hash[Symbol, untyped] params) -> Hash[Symbol, untyped]
+    def get: (String reservation_id) -> Hash[Symbol, untyped]
+    def list: (?Hash[Symbol, untyped] params) -> Hash[Symbol, untyped]
+
+    private
+
+    def validate_create_params!: (Hash[Symbol, untyped] params) -> void
+    def validate_update_params!: (Hash[Symbol, untyped] params) -> void
+    def validate_party_size!: (untyped party_size) -> void
+    def validate_time_format!: (untyped time) -> void
+  end
+end 
