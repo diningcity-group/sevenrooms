@@ -4,7 +4,7 @@ module Sevenrooms
 
     def initialize: (Client client) -> void
 
-    def create: (Hash[Symbol, untyped] params) -> Hash[Symbol, untyped]
+    def create: (String venue_id, Hash[Symbol, untyped] params) -> Hash[Symbol, untyped]
     def update: (String reservation_id, Hash[Symbol, untyped] params) -> Hash[Symbol, untyped]
     def cancel: (String reservation_id, ?Hash[Symbol, untyped] params) -> Hash[Symbol, untyped]
     def get: (String reservation_id) -> Hash[Symbol, untyped]
@@ -13,8 +13,12 @@ module Sevenrooms
     private
 
     def validate_create_params!: (Hash[Symbol, untyped] params) -> void
+    def validate_required_params!: (Hash[Symbol, untyped] params) -> void
     def validate_update_params!: (Hash[Symbol, untyped] params) -> void
     def validate_party_size!: (untyped party_size) -> void
+    def validate_date_format!: (untyped date) -> void
     def validate_time_format!: (untyped time) -> void
+    def validate_phone_format!: (untyped phone) -> void
+    def validate_email_format!: (untyped email) -> void
   end
 end 
