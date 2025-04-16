@@ -31,10 +31,6 @@ module Sevenrooms
       get("/reservations/#{reservation_id}")
     end
 
-    def list_reservations(params = {})
-      get("/reservations", params)
-    end
-
     private
 
     def connection

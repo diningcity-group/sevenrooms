@@ -42,14 +42,14 @@ RSpec.describe Sevenrooms::Client do
     end
   end
 
-  describe '#create_booking' do
-    let(:booking_params) { { venue_id: '123', date: '2024-04-15', time: '19:00', party_size: 2, first_name: 'John', last_name: 'Doe', email: 'john@example.com' } }
+  describe '#create_reservation' do
+    let(:reservation_params) { { venue_id: '123', date: '2024-04-15', time: '19:00', party_size: 2, first_name: 'John', last_name: 'Doe', email: 'john@example.com' } }
     let(:response_body) { { id: '123', status: 'confirmed' } }
 
     before do
       stub_request(:post, "#{api_url}/reservations")
         .with(
-          body: booking_params,
+          body: reservation_params,
           headers: {
             'Accept' => '*/*',
             'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
@@ -63,15 +63,15 @@ RSpec.describe Sevenrooms::Client do
         .to_return(status: 200, body: response_body.to_json, headers: { 'Content-Type' => 'application/json' })
     end
 
-    it 'creates a booking successfully' do
-      response = client.create_booking(booking_params)
+    it 'creates a reservation successfully' do
+      response = client.create_reservation(reservation_params)
       expect(response).to eq(response_body)
     end
 
     it 'handles API errors' do
       stub_request(:post, "#{api_url}/reservations")
         .with(
-          body: booking_params,
+          body: reservation_params,
           headers: {
             'Accept' => '*/*',
             'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
@@ -84,11 +84,11 @@ RSpec.describe Sevenrooms::Client do
         )
         .to_return(status: 401, body: { message: 'Unauthorized' }.to_json, headers: { 'Content-Type' => 'application/json' })
 
-      expect { client.create_booking(booking_params) }.to raise_error(Sevenrooms::APIError)
+      expect { client.create_reservation(reservation_params) }.to raise_error(Sevenrooms::APIError)
     end
   end
 
-  describe '#update_booking' do
+  describe '#update_reservation' do
     let(:reservation_id) { '123' }
     let(:update_params) { { first_name: 'Jane', last_name: 'Doe' } }
     let(:response_body) { { id: reservation_id, status: 'updated' } }
@@ -110,8 +110,8 @@ RSpec.describe Sevenrooms::Client do
         .to_return(status: 200, body: response_body.to_json, headers: { 'Content-Type' => 'application/json' })
     end
 
-    it 'updates a booking successfully' do
-      response = client.update_booking(reservation_id, update_params)
+    it 'updates a reservation successfully' do
+      response = client.update_reservation(reservation_id, update_params)
       expect(response).to eq(response_body)
     end
 
@@ -131,11 +131,11 @@ RSpec.describe Sevenrooms::Client do
         )
         .to_return(status: 404, body: { message: 'Not Found' }.to_json, headers: { 'Content-Type' => 'application/json' })
 
-      expect { client.update_booking(reservation_id, update_params) }.to raise_error(Sevenrooms::APIError)
+      expect { client.update_reservation(reservation_id, update_params) }.to raise_error(Sevenrooms::APIError)
     end
   end
 
-  describe '#cancel_booking' do
+  describe '#cancel_reservation' do
     let(:reservation_id) { '123' }
     let(:cancel_params) { { reason: 'Customer request' } }
     let(:response_body) { { id: reservation_id, status: 'cancelled' } }
@@ -157,12 +157,12 @@ RSpec.describe Sevenrooms::Client do
         .to_return(status: 200, body: response_body.to_json, headers: { 'Content-Type' => 'application/json' })
     end
 
-    it 'cancels a booking successfully' do
-      response = client.cancel_booking(reservation_id, cancel_params)
+    it 'cancels a reservation successfully' do
+      response = client.cancel_reservation(reservation_id, cancel_params)
       expect(response).to eq(response_body)
     end
 
-    it 'cancels a booking without params' do
+    it 'cancels a reservation without params' do
       stub_request(:delete, "#{api_url}/reservations/#{reservation_id}")
         .with(
           headers: {
@@ -176,7 +176,7 @@ RSpec.describe Sevenrooms::Client do
         )
         .to_return(status: 200, body: response_body.to_json, headers: { 'Content-Type' => 'application/json' })
 
-      response = client.cancel_booking(reservation_id)
+      response = client.cancel_reservation(reservation_id)
       expect(response).to eq(response_body)
     end
 
@@ -196,7 +196,49 @@ RSpec.describe Sevenrooms::Client do
         )
         .to_return(status: 422, body: { message: 'Validation error' }.to_json, headers: { 'Content-Type' => 'application/json' })
 
-      expect { client.cancel_booking(reservation_id, cancel_params) }.to raise_error(Sevenrooms::APIError)
+      expect { client.cancel_reservation(reservation_id, cancel_params) }.to raise_error(Sevenrooms::APIError)
+    end
+  end
+
+  describe '#get_reservation' do
+    let(:reservation_id) { '123' }
+    let(:response_body) { { id: reservation_id, status: 'confirmed', party_size: 2, first_name: 'John', last_name: 'Doe' } }
+
+    before do
+      stub_request(:get, "#{api_url}/reservations/#{reservation_id}")
+        .with(
+          headers: {
+            'Accept' => '*/*',
+            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+            'User-Agent' => 'Faraday v2.13.0',
+            'X-Client-Id' => client_id,
+            'X-Client-Secret' => client_secret,
+            'X-Concierge-Id' => concierge_id
+          }
+        )
+        .to_return(status: 200, body: response_body.to_json, headers: { 'Content-Type' => 'application/json' })
+    end
+
+    it 'gets a reservation successfully' do
+      response = client.get_reservation(reservation_id)
+      expect(response).to eq(response_body)
+    end
+
+    it 'handles API errors' do
+      stub_request(:get, "#{api_url}/reservations/#{reservation_id}")
+        .with(
+          headers: {
+            'Accept' => '*/*',
+            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+            'User-Agent' => 'Faraday v2.13.0',
+            'X-Client-Id' => client_id,
+            'X-Client-Secret' => client_secret,
+            'X-Concierge-Id' => concierge_id
+          }
+        )
+        .to_return(status: 404, body: { message: 'Not Found' }.to_json, headers: { 'Content-Type' => 'application/json' })
+
+      expect { client.get_reservation(reservation_id) }.to raise_error(Sevenrooms::APIError)
     end
   end
 end 
