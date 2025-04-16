@@ -8,6 +8,167 @@ RSpec.describe Sevenrooms::Client do
   let(:api_url) { 'https://demo.sevenrooms.com/api-ext/2_4' }
   let(:client) { described_class.new(client_id: client_id, client_secret: client_secret, concierge_id: concierge_id, api_url: api_url) }
 
+  before do
+    # Stub authentication request
+    stub_request(:post, "#{api_url}/auth")
+      .with(
+        body: {
+          client_id: client_id,
+          client_secret: client_secret
+        },
+        headers: {
+          'Accept' => '*/*',
+          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+          'Content-Type' => 'application/x-www-form-urlencoded',
+          'User-Agent' => 'Ruby',
+          'X-Concierge-Id' => concierge_id
+        }
+      )
+      .to_return(
+        status: 200,
+        body: {
+          data: {
+            token: 'test_token',
+            token_expiration_datetime: '2024-04-16T12:00:00Z'
+          }
+        }.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      )
+
+    # Stub create reservation request
+    stub_request(:put, "#{api_url}/concierge/#{concierge_id}/venues/venue123/book")
+      .with(
+        body: {
+          venue_id: 'venue123',
+          arrival_time: '07:00:00 PM',
+          party_size: 4,
+          first_name: 'John',
+          last_name: 'Doe',
+          email: 'john@example.com',
+          phone: '123-456-7890',
+          notes: 'Window seat preferred'
+        },
+        headers: {
+          'Accept' => '*/*',
+          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+          'Authorization' => 'test_token',
+          'Content-Type' => 'application/x-www-form-urlencoded',
+          'User-Agent' => 'Ruby',
+          'X-Concierge-Id' => concierge_id
+        }
+      )
+      .to_return(
+        status: 200,
+        body: {
+          data: {
+            id: '12345',
+            status: 'confirmed'
+          }
+        }.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      )
+
+    # Stub update reservation request
+    stub_request(:put, "#{api_url}/concierge/#{concierge_id}/reservations/123")
+      .with(
+        body: {
+          first_name: 'Jane',
+          last_name: 'Doe'
+        },
+        headers: {
+          'Accept' => '*/*',
+          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+          'Authorization' => 'test_token',
+          'Content-Type' => 'application/x-www-form-urlencoded',
+          'User-Agent' => 'Ruby',
+          'X-Concierge-Id' => concierge_id
+        }
+      )
+      .to_return(
+        status: 200,
+        body: {
+          data: {
+            id: '123',
+            status: 'confirmed'
+          }
+        }.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      )
+
+    # Stub cancel reservation request
+    stub_request(:delete, "#{api_url}/concierge/#{concierge_id}/reservations/123")
+      .with(
+        body: {
+          reason: 'Customer request'
+        },
+        headers: {
+          'Accept' => '*/*',
+          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+          'Authorization' => 'test_token',
+          'Content-Type' => 'application/x-www-form-urlencoded',
+          'User-Agent' => 'Ruby',
+          'X-Concierge-Id' => concierge_id
+        }
+      )
+      .to_return(
+        status: 200,
+        body: {
+          data: {
+            id: '123',
+            status: 'cancelled'
+          }
+        }.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      )
+
+    # Stub cancel reservation request without params
+    stub_request(:delete, "#{api_url}/concierge/#{concierge_id}/reservations/123")
+      .with(
+        headers: {
+          'Accept' => '*/*',
+          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+          'Authorization' => 'test_token',
+          'Content-Type' => 'application/x-www-form-urlencoded',
+          'User-Agent' => 'Ruby',
+          'X-Concierge-Id' => concierge_id
+        }
+      )
+      .to_return(
+        status: 200,
+        body: {
+          data: {
+            id: '123',
+            status: 'cancelled'
+          }
+        }.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      )
+
+    # Stub get reservation request
+    stub_request(:get, "#{api_url}/concierge/#{concierge_id}/reservations/123")
+      .with(
+        headers: {
+          'Accept' => '*/*',
+          'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+          'Authorization' => 'test_token',
+          'User-Agent' => 'Ruby',
+          'X-Concierge-Id' => concierge_id
+        }
+      )
+      .to_return(
+        status: 200,
+        body: {
+          data: {
+            id: '123',
+            status: 'confirmed',
+            arrival_time: '07:00:00 PM',
+            party_size: 4
+          }
+        }.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      )
+  end
+
   describe '#initialize' do
     it 'initializes with credentials' do
       expect(client.client_id).to eq(client_id)
@@ -16,7 +177,7 @@ RSpec.describe Sevenrooms::Client do
       expect(client.api_url).to eq(api_url)
     end
 
-    it 'uses default API URL if not provided' do
+    it 'uses default API URL if api_url parameter is not provided' do
       client = described_class.new(client_id: client_id, client_secret: client_secret, concierge_id: concierge_id)
       expect(client.api_url).to eq(api_url)
     end
@@ -36,209 +197,103 @@ RSpec.describe Sevenrooms::Client do
       expect { described_class.new(client_id: client_id, client_secret: client_secret, concierge_id: '') }.to raise_error(Sevenrooms::ConfigurationError)
     end
 
-    it 'raises ConfigurationError if API URL is missing' do
+    it 'raises ConfigurationError if API URL is explicitly set to nil or empty' do
       expect { described_class.new(client_id: client_id, client_secret: client_secret, concierge_id: concierge_id, api_url: nil) }.to raise_error(Sevenrooms::ConfigurationError)
       expect { described_class.new(client_id: client_id, client_secret: client_secret, concierge_id: concierge_id, api_url: '') }.to raise_error(Sevenrooms::ConfigurationError)
     end
   end
 
   describe '#create_reservation' do
-    let(:reservation_params) { { venue_id: '123', date: '2024-04-15', time: '19:00', party_size: 2, first_name: 'John', last_name: 'Doe', email: 'john@example.com' } }
-    let(:response_body) { { id: '123', status: 'confirmed' } }
-
-    before do
-      stub_request(:post, "#{api_url}/reservations")
-        .with(
-          body: reservation_params,
-          headers: {
-            'Accept' => '*/*',
-            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-            'Content-Type' => 'application/json',
-            'User-Agent' => 'Faraday v2.13.0',
-            'X-Client-Id' => client_id,
-            'X-Client-Secret' => client_secret,
-            'X-Concierge-Id' => concierge_id
-          }
-        )
-        .to_return(status: 200, body: response_body.to_json, headers: { 'Content-Type' => 'application/json' })
+    let(:reservation_params) do
+      {
+        venue_id: 'venue123',
+        arrival_time: '07:00:00 PM',
+        party_size: 4,
+        first_name: 'John',
+        last_name: 'Doe',
+        email: 'john@example.com',
+        phone: '123-456-7890',
+        notes: 'Window seat preferred'
+      }
     end
 
     it 'creates a reservation successfully' do
-      response = client.create_reservation(reservation_params)
-      expect(response).to eq(response_body)
+      response = client.create_reservation(reservation_params[:venue_id], reservation_params)
+      expect(response['data']['id']).to eq('12345')
+      expect(response['data']['status']).to eq('confirmed')
     end
 
     it 'handles API errors' do
-      stub_request(:post, "#{api_url}/reservations")
-        .with(
-          body: reservation_params,
-          headers: {
-            'Accept' => '*/*',
-            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-            'Content-Type' => 'application/json',
-            'User-Agent' => 'Faraday v2.13.0',
-            'X-Client-Id' => client_id,
-            'X-Client-Secret' => client_secret,
-            'X-Concierge-Id' => concierge_id
-          }
-        )
-        .to_return(status: 401, body: { message: 'Unauthorized' }.to_json, headers: { 'Content-Type' => 'application/json' })
+      stub_request(:put, "#{api_url}/concierge/#{concierge_id}/venues/venue123/book")
+        .to_return(status: 400, body: { message: 'Bad Request' }.to_json)
 
-      expect { client.create_reservation(reservation_params) }.to raise_error(Sevenrooms::APIError)
+      expect { client.create_reservation(reservation_params[:venue_id], reservation_params) }.to raise_error(Sevenrooms::APIError)
     end
   end
 
   describe '#update_reservation' do
-    let(:reservation_id) { '123' }
-    let(:update_params) { { first_name: 'Jane', last_name: 'Doe' } }
-    let(:response_body) { { id: reservation_id, status: 'updated' } }
-
-    before do
-      stub_request(:put, "#{api_url}/reservations/#{reservation_id}")
-        .with(
-          body: update_params,
-          headers: {
-            'Accept' => '*/*',
-            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-            'Content-Type' => 'application/json',
-            'User-Agent' => 'Faraday v2.13.0',
-            'X-Client-Id' => client_id,
-            'X-Client-Secret' => client_secret,
-            'X-Concierge-Id' => concierge_id
-          }
-        )
-        .to_return(status: 200, body: response_body.to_json, headers: { 'Content-Type' => 'application/json' })
+    let(:update_params) do
+      {
+        first_name: 'Jane',
+        last_name: 'Doe'
+      }
     end
 
     it 'updates a reservation successfully' do
-      response = client.update_reservation(reservation_id, update_params)
-      expect(response).to eq(response_body)
+      response = client.update_reservation('123', update_params)
+      expect(response['data']['id']).to eq('123')
+      expect(response['data']['status']).to eq('confirmed')
     end
 
     it 'handles API errors' do
-      stub_request(:put, "#{api_url}/reservations/#{reservation_id}")
-        .with(
-          body: update_params,
-          headers: {
-            'Accept' => '*/*',
-            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-            'Content-Type' => 'application/json',
-            'User-Agent' => 'Faraday v2.13.0',
-            'X-Client-Id' => client_id,
-            'X-Client-Secret' => client_secret,
-            'X-Concierge-Id' => concierge_id
-          }
-        )
-        .to_return(status: 404, body: { message: 'Not Found' }.to_json, headers: { 'Content-Type' => 'application/json' })
+      stub_request(:put, "#{api_url}/concierge/#{concierge_id}/reservations/123")
+        .to_return(status: 400, body: { message: 'Bad Request' }.to_json)
 
-      expect { client.update_reservation(reservation_id, update_params) }.to raise_error(Sevenrooms::APIError)
+      expect { client.update_reservation('123', update_params) }.to raise_error(Sevenrooms::APIError)
     end
   end
 
   describe '#cancel_reservation' do
-    let(:reservation_id) { '123' }
-    let(:cancel_params) { { reason: 'Customer request' } }
-    let(:response_body) { { id: reservation_id, status: 'cancelled' } }
-
-    before do
-      stub_request(:delete, "#{api_url}/reservations/#{reservation_id}")
-        .with(
-          body: cancel_params,
-          headers: {
-            'Accept' => '*/*',
-            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-            'Content-Type' => 'application/json',
-            'User-Agent' => 'Faraday v2.13.0',
-            'X-Client-Id' => client_id,
-            'X-Client-Secret' => client_secret,
-            'X-Concierge-Id' => concierge_id
-          }
-        )
-        .to_return(status: 200, body: response_body.to_json, headers: { 'Content-Type' => 'application/json' })
+    let(:cancel_params) do
+      {
+        reason: 'Customer request'
+      }
     end
 
     it 'cancels a reservation successfully' do
-      response = client.cancel_reservation(reservation_id, cancel_params)
-      expect(response).to eq(response_body)
+      response = client.cancel_reservation('123', cancel_params)
+      expect(response['data']['id']).to eq('123')
+      expect(response['data']['status']).to eq('cancelled')
     end
 
     it 'cancels a reservation without params' do
-      stub_request(:delete, "#{api_url}/reservations/#{reservation_id}")
-        .with(
-          headers: {
-            'Accept' => '*/*',
-            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-            'User-Agent' => 'Faraday v2.13.0',
-            'X-Client-Id' => client_id,
-            'X-Client-Secret' => client_secret,
-            'X-Concierge-Id' => concierge_id
-          }
-        )
-        .to_return(status: 200, body: response_body.to_json, headers: { 'Content-Type' => 'application/json' })
-
-      response = client.cancel_reservation(reservation_id)
-      expect(response).to eq(response_body)
+      response = client.cancel_reservation('123')
+      expect(response['data']['id']).to eq('123')
+      expect(response['data']['status']).to eq('cancelled')
     end
 
     it 'handles API errors' do
-      stub_request(:delete, "#{api_url}/reservations/#{reservation_id}")
-        .with(
-          body: cancel_params,
-          headers: {
-            'Accept' => '*/*',
-            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-            'Content-Type' => 'application/json',
-            'User-Agent' => 'Faraday v2.13.0',
-            'X-Client-Id' => client_id,
-            'X-Client-Secret' => client_secret,
-            'X-Concierge-Id' => concierge_id
-          }
-        )
-        .to_return(status: 422, body: { message: 'Validation error' }.to_json, headers: { 'Content-Type' => 'application/json' })
+      stub_request(:delete, "#{api_url}/concierge/#{concierge_id}/reservations/123")
+        .to_return(status: 400, body: { message: 'Bad Request' }.to_json)
 
-      expect { client.cancel_reservation(reservation_id, cancel_params) }.to raise_error(Sevenrooms::APIError)
+      expect { client.cancel_reservation('123', cancel_params) }.to raise_error(Sevenrooms::APIError)
     end
   end
 
   describe '#get_reservation' do
-    let(:reservation_id) { '123' }
-    let(:response_body) { { id: reservation_id, status: 'confirmed', party_size: 2, first_name: 'John', last_name: 'Doe' } }
-
-    before do
-      stub_request(:get, "#{api_url}/reservations/#{reservation_id}")
-        .with(
-          headers: {
-            'Accept' => '*/*',
-            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-            'User-Agent' => 'Faraday v2.13.0',
-            'X-Client-Id' => client_id,
-            'X-Client-Secret' => client_secret,
-            'X-Concierge-Id' => concierge_id
-          }
-        )
-        .to_return(status: 200, body: response_body.to_json, headers: { 'Content-Type' => 'application/json' })
-    end
-
     it 'gets a reservation successfully' do
-      response = client.get_reservation(reservation_id)
-      expect(response).to eq(response_body)
+      response = client.get_reservation('123')
+      expect(response['data']['id']).to eq('123')
+      expect(response['data']['status']).to eq('confirmed')
+      expect(response['data']['arrival_time']).to eq('07:00:00 PM')
+      expect(response['data']['party_size']).to eq(4)
     end
 
     it 'handles API errors' do
-      stub_request(:get, "#{api_url}/reservations/#{reservation_id}")
-        .with(
-          headers: {
-            'Accept' => '*/*',
-            'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-            'User-Agent' => 'Faraday v2.13.0',
-            'X-Client-Id' => client_id,
-            'X-Client-Secret' => client_secret,
-            'X-Concierge-Id' => concierge_id
-          }
-        )
-        .to_return(status: 404, body: { message: 'Not Found' }.to_json, headers: { 'Content-Type' => 'application/json' })
+      stub_request(:get, "#{api_url}/concierge/#{concierge_id}/reservations/123")
+        .to_return(status: 400, body: { message: 'Bad Request' }.to_json)
 
-      expect { client.get_reservation(reservation_id) }.to raise_error(Sevenrooms::APIError)
+      expect { client.get_reservation('123') }.to raise_error(Sevenrooms::APIError)
     end
   end
 end 

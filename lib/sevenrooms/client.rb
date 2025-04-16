@@ -6,19 +6,25 @@ require "json"
 
 module Sevenrooms
   class Client
-    attr_reader :client_id, :client_secret, :concierge_id, :base_url
+    attr_reader :client_id, :client_secret, :concierge_id, :api_url
 
-    def initialize(client_id:, client_secret:, concierge_id:, base_url: nil)
+    def initialize(client_id:, client_secret:, concierge_id:, api_url: nil)
       puts "\n[SevenRooms] Initializing client..."
-      puts "[SevenRooms] Base URL: #{base_url || 'https://demo.sevenrooms.com/api-ext/2_4'}"
+      puts "[SevenRooms] API URL: #{api_url || 'https://demo.sevenrooms.com/api-ext/2_4'}"
       puts "[SevenRooms] Concierge ID: #{concierge_id}"
       
       @client_id = client_id
       @client_secret = client_secret
       @concierge_id = concierge_id
-      @base_url = base_url || "https://demo.sevenrooms.com/api-ext/2_4"
+      @api_url = api_url
       @retried_auth = nil
+      
+      # Set default API URL if not provided in constructor
+      @api_url = "https://demo.sevenrooms.com/api-ext/2_4" if !api_url && !instance_variable_defined?(:@api_url)
+      
+      # Validate configuration
       validate_configuration!
+      
       authenticate!
     end
 
@@ -38,7 +44,7 @@ module Sevenrooms
         params.delete(:reservation_time)
       end
       
-      request_url = "#{@base_url}/concierge/#{concierge_id}/venues/#{venue_id}/book"
+      request_url = "#{@api_url}/concierge/#{concierge_id}/venues/#{venue_id}/book"
       
       puts "[SevenRooms] Create Reservation Request Details:"
       puts "[SevenRooms] Method: PUT"
@@ -57,7 +63,7 @@ module Sevenrooms
       @last_method = :update_reservation
       @last_args = [reservation_id, params]
       
-      request_url = "#{@base_url}/concierge/#{concierge_id}/reservations/#{reservation_id}"
+      request_url = "#{@api_url}/concierge/#{concierge_id}/reservations/#{reservation_id}"
       
       puts "[SevenRooms] Update Reservation Request Details:"
       puts "[SevenRooms] Method: PUT"
@@ -76,7 +82,7 @@ module Sevenrooms
       @last_method = :cancel_reservation
       @last_args = [reservation_id, params]
       
-      request_url = "#{@base_url}/concierge/#{concierge_id}/reservations/#{reservation_id}"
+      request_url = "#{@api_url}/concierge/#{concierge_id}/reservations/#{reservation_id}"
       
       puts "[SevenRooms] Cancel Reservation Request Details:"
       puts "[SevenRooms] Method: DELETE"
@@ -95,7 +101,7 @@ module Sevenrooms
       @last_method = :get_reservation
       @last_args = [reservation_id]
       
-      request_url = "#{@base_url}/concierge/#{concierge_id}/reservations/#{reservation_id}"
+      request_url = "#{@api_url}/concierge/#{concierge_id}/reservations/#{reservation_id}"
       
       puts "[SevenRooms] Get Reservation Request Details:"
       puts "[SevenRooms] Method: GET"
@@ -113,7 +119,7 @@ module Sevenrooms
       @last_method = :request_reservation
       @last_args = [venue_id, params]
       
-      request_url = "#{@base_url}/concierge/#{concierge_id}/venues/#{venue_id}/request"
+      request_url = "#{@api_url}/concierge/#{concierge_id}/venues/#{venue_id}/request"
       
       puts "[SevenRooms] Request Reservation Details:"
       puts "[SevenRooms] Method: PUT"
@@ -130,9 +136,9 @@ module Sevenrooms
     def authenticate!
       puts "\n[SevenRooms] Authenticating..."
       puts "[SevenRooms] Using client ID: #{client_id}"
-      puts "[SevenRooms] Base URL: #{@base_url}"
+      puts "[SevenRooms] API URL: #{@api_url}"
       
-      auth_url = "#{@base_url}/auth"
+      auth_url = "#{@api_url}/auth"
       auth_headers = default_headers
       auth_body = {
         client_id: client_id,
@@ -271,6 +277,7 @@ module Sevenrooms
       raise ConfigurationError, "client_id is required" if @client_id.nil? || @client_id.empty?
       raise ConfigurationError, "client_secret is required" if @client_secret.nil? || @client_secret.empty?
       raise ConfigurationError, "concierge_id is required" if @concierge_id.nil? || @concierge_id.empty?
+      raise ConfigurationError, "api_url is required" if @api_url.nil? || @api_url.empty?
       puts "[SevenRooms] Configuration validation successful"
     end
   end
