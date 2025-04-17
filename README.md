@@ -1,6 +1,6 @@
 # Sevenrooms
 
-A Ruby gem for interacting with the SevenRooms API. This gem provides a simple and intuitive interface for managing reservations in SevenRooms.
+A Ruby gem for interacting with the SevenRooms API v2.4. This gem provides a simple and intuitive interface for managing reservations in SevenRooms.
 
 ## Table of Contents
 
@@ -20,8 +20,9 @@ A Ruby gem for interacting with the SevenRooms API. This gem provides a simple a
 
 ## Prerequisites
 
-- Ruby 2.7 or higher
-- A valid SevenRooms API key
+- Ruby 3.1.0 or higher
+- A valid SevenRooms API client ID and secret
+- A valid SevenRooms Concierge ID
 - Access to the SevenRooms API endpoints
 
 ## Installation
@@ -46,17 +47,24 @@ $ gem install sevenrooms
 
 ## Configuration
 
-The gem requires minimal configuration. You only need to provide your API key:
+The gem requires the following configuration parameters:
 
 ```ruby
 client = Sevenrooms::Client.new(
-  api_key: 'your_api_key',
+  client_id: 'your_client_id',
+  client_secret: 'your_client_secret',
+  concierge_id: 'your_concierge_id',
   # Optional configuration
-  timeout: 30,           # HTTP timeout in seconds (default: 30)
-  retries: 3,            # Number of retries for failed requests (default: 3)
-  base_url: 'https://api.sevenrooms.com'  # API base URL (default: production URL)
+  api_url: 'https://api.sevenrooms.com/2_4'  # API base URL (default: demo URL)
 )
 ```
+
+## Dependencies
+
+The gem has the following runtime dependencies:
+- faraday (~> 2.0) - For HTTP requests
+- json (~> 2.6) - For JSON parsing
+- openssl (~> 3.0) - For secure connections
 
 ## Usage
 
@@ -65,8 +73,12 @@ client = Sevenrooms::Client.new(
 ```ruby
 require 'sevenrooms'
 
-# Initialize the client with your API key
-client = Sevenrooms::Client.new(api_key: 'your_api_key')
+# Initialize the client with your credentials
+client = Sevenrooms::Client.new(
+  client_id: 'your_client_id',
+  client_secret: 'your_client_secret',
+  concierge_id: 'your_concierge_id'
+)
 
 # Create a reservation manager
 reservation = Sevenrooms::Reservation.new(client)
@@ -80,7 +92,6 @@ reservation = Sevenrooms::Reservation.new(client)
 # Required parameters
 params = {
   venue_id: 'venue123',
-  client_id: 'client456',
   arrival_time: '07:00:00 PM',
   party_size: 4
 }
@@ -91,7 +102,10 @@ optional_params = {
   last_name: 'Doe',
   email: 'john@example.com',
   phone: '123-456-7890',
-  notes: 'Window seat preferred'
+  notes: 'Window seat preferred',
+  external_id: 'your_external_id',
+  prepayment: true,
+  prepayment_total: 50.00
 }
 
 # Create the reservation
@@ -102,26 +116,24 @@ result = reservation.create(params.merge(optional_params))
 
 ```ruby
 # Update specific fields
-reservation.update('reservation_id',
+reservation.update(
   arrival_time: '08:00:00 PM',
   party_size: 6,
   notes: 'Updated to larger party'
 )
 
 # Partial updates are supported
-reservation.update('reservation_id', notes: 'Updated notes only')
+reservation.update(notes: 'Updated notes only')
 ```
 
 #### Cancel a Reservation
 
 ```ruby
 # Cancel with reason
-reservation.cancel('reservation_id', 
-  cancellation_reason: 'Guest request'
-)
+reservation.cancel('Guest request')
 
 # Cancel without reason
-reservation.cancel('reservation_id')
+reservation.cancel
 ```
 
 #### Get a Reservation
@@ -129,8 +141,8 @@ reservation.cancel('reservation_id')
 ```ruby
 # Get reservation details
 details = reservation.get('reservation_id')
-puts "Reservation status: #{details[:status]}"
-puts "Party size: #{details[:party_size]}"
+puts "Reservation status: #{details.status}"
+puts "Party size: #{details.party_size}"
 ```
 
 #### List Reservations
@@ -164,13 +176,11 @@ end
 reservations = [
   {
     venue_id: 'venue123',
-    client_id: 'client456',
     arrival_time: '07:00:00 PM',
     party_size: 4
   },
   {
     venue_id: 'venue123',
-    client_id: 'client789',
     arrival_time: '08:00:00 PM',
     party_size: 2
   }
@@ -228,7 +238,7 @@ results = reservation.get_batch(['12345', '67890'])
 
 ### Error Handling
 
-The gem uses standard error classes for different types of errors:
+The gem provides comprehensive validation and error handling:
 
 ```ruby
 begin
@@ -237,8 +247,21 @@ rescue Sevenrooms::APIError => e
   # Handle API errors (network issues, invalid responses, etc.)
   puts "API Error: #{e.message}"
 rescue ArgumentError => e
-  # Handle validation errors (invalid parameters, missing fields, etc.)
-  puts "Invalid parameters: #{e.message}"
+  # Handle validation errors
+  case e.message
+  when /Missing required parameters/
+    puts "Missing required fields: #{e.message}"
+  when /Party size must be a positive integer/
+    puts "Invalid party size"
+  when /Time must be in format/
+    puts "Invalid time format"
+  when /Invalid phone number format/
+    puts "Invalid phone number"
+  when /Invalid email format/
+    puts "Invalid email address"
+  else
+    puts "Validation error: #{e.message}"
+  end
 rescue => e
   # Handle any other errors
   puts "Unexpected error: #{e.message}"
@@ -308,7 +331,7 @@ bundle exec rspec --format documentation --color
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/diningcity-group/sevenrooms. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/diningcity-group/sevenrooms/blob/master/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/smartcoder0215/sevenrooms. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/smartcoder0215/sevenrooms/blob/main/CODE_OF_CONDUCT.md).
 
 ### Development Process
 
@@ -324,4 +347,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the Sevenrooms project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/diningcity-group/sevenrooms/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the Sevenrooms project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/smartcoder0215/sevenrooms/blob/main/CODE_OF_CONDUCT.md).
