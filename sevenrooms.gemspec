@@ -29,7 +29,7 @@ Gem::Specification.new do |spec|
   # Dependencies
   spec.add_dependency "faraday", "~> 2.0"
   spec.add_dependency "json", "~> 2.6"
-  spec.add_dependency "openssl", "~> 3.0"
+
 
   # Development dependencies
   spec.add_development_dependency "bundler", "~> 2.0"
