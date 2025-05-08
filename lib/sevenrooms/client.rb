@@ -1,57 +1,54 @@
 # frozen_string_literal: true
 
-require "net/http"
-require "uri"
-require "json"
+require 'net/http'
+require 'uri'
+require 'json'
 
 module Sevenrooms
   class Client
     attr_reader :client_id, :client_secret, :concierge_id, :api_url
 
-    def initialize(client_id:, client_secret:, concierge_id:, api_url: nil)
+    def initialize(client_id:, client_secret:, concierge_id:, api_url: 'https://demo.sevenrooms.com/api-ext/2_4')
       puts "\n[SevenRooms] Initializing client..."
-      puts "[SevenRooms] API URL: #{api_url || 'https://demo.sevenrooms.com/api-ext/2_4'}"
+      puts "[SevenRooms] API URL: #{api_url}"
       puts "[SevenRooms] Concierge ID: #{concierge_id}"
-      
+
       @client_id = client_id
       @client_secret = client_secret
       @concierge_id = concierge_id
       @api_url = api_url
       @retried_auth = nil
-      
-      # Set default API URL if not provided in constructor
-      @api_url = "https://demo.sevenrooms.com/api-ext/2_4" if !api_url && !instance_variable_defined?(:@api_url)
-      
+
       # Validate configuration
       validate_configuration!
-      
+
       authenticate!
     end
 
     def create_reservation(venue_id, params)
       puts "\n[SevenRooms] Creating reservation..."
       puts "[SevenRooms] Venue ID: #{venue_id}"
-      
+
       @last_method = :create_reservation
       @last_args = [venue_id, params]
-      
+
       # Convert reservation_time to date and time if present
       if params[:reservation_time]
         require 'date'
         reservation_time = DateTime.parse(params[:reservation_time])
-        params[:date] = reservation_time.strftime("%Y-%m-%d")
-        params[:time] = reservation_time.strftime("%H:%M")
+        params[:date] = reservation_time.strftime('%Y-%m-%d')
+        params[:time] = reservation_time.strftime('%H:%M')
         params.delete(:reservation_time)
       end
-      
+
       request_url = "#{@api_url}/concierge/#{concierge_id}/venues/#{venue_id}/book"
-      
-      puts "[SevenRooms] Create Reservation Request Details:"
-      puts "[SevenRooms] Method: PUT"
+
+      puts '[SevenRooms] Create Reservation Request Details:'
+      puts '[SevenRooms] Method: PUT'
       puts "[SevenRooms] URL: #{request_url}"
       puts "[SevenRooms] Headers: #{default_headers.inspect}"
       puts "[SevenRooms] Body: #{params.inspect}"
-      
+
       response = make_request(:put, request_url, params)
       handle_response(response)
     end
@@ -59,18 +56,18 @@ module Sevenrooms
     def update_reservation(reservation_id, params)
       puts "\n[SevenRooms] Updating reservation..."
       puts "[SevenRooms] Reservation ID: #{reservation_id}"
-      
+
       @last_method = :update_reservation
       @last_args = [reservation_id, params]
-      
+
       request_url = "#{@api_url}/concierge/#{concierge_id}/reservations/#{reservation_id}"
-      
-      puts "[SevenRooms] Update Reservation Request Details:"
-      puts "[SevenRooms] Method: PUT"
+
+      puts '[SevenRooms] Update Reservation Request Details:'
+      puts '[SevenRooms] Method: PUT'
       puts "[SevenRooms] URL: #{request_url}"
       puts "[SevenRooms] Headers: #{default_headers.inspect}"
       puts "[SevenRooms] Body: #{params.inspect}"
-      
+
       response = make_request(:put, request_url, params)
       handle_response(response)
     end
@@ -78,18 +75,18 @@ module Sevenrooms
     def cancel_reservation(reservation_id, params = {})
       puts "\n[SevenRooms] Canceling reservation..."
       puts "[SevenRooms] Reservation ID: #{reservation_id}"
-      
+
       @last_method = :cancel_reservation
       @last_args = [reservation_id, params]
-      
+
       request_url = "#{@api_url}/concierge/#{concierge_id}/reservations/#{reservation_id}"
-      
-      puts "[SevenRooms] Cancel Reservation Request Details:"
-      puts "[SevenRooms] Method: DELETE"
+
+      puts '[SevenRooms] Cancel Reservation Request Details:'
+      puts '[SevenRooms] Method: DELETE'
       puts "[SevenRooms] URL: #{request_url}"
       puts "[SevenRooms] Headers: #{default_headers.inspect}"
       puts "[SevenRooms] Body: #{params.inspect}"
-      
+
       response = make_request(:delete, request_url, params)
       handle_response(response)
     end
@@ -97,17 +94,17 @@ module Sevenrooms
     def get_reservation(reservation_id)
       puts "\n[SevenRooms] Getting reservation..."
       puts "[SevenRooms] Reservation ID: #{reservation_id}"
-      
+
       @last_method = :get_reservation
       @last_args = [reservation_id]
-      
+
       request_url = "#{@api_url}/concierge/#{concierge_id}/reservations/#{reservation_id}"
-      
-      puts "[SevenRooms] Get Reservation Request Details:"
-      puts "[SevenRooms] Method: GET"
+
+      puts '[SevenRooms] Get Reservation Request Details:'
+      puts '[SevenRooms] Method: GET'
       puts "[SevenRooms] URL: #{request_url}"
       puts "[SevenRooms] Headers: #{default_headers.inspect}"
-      
+
       response = make_request(:get, request_url)
       handle_response(response)
     end
@@ -115,18 +112,18 @@ module Sevenrooms
     def request_reservation(venue_id, params)
       puts "\n[SevenRooms] Requesting reservation..."
       puts "[SevenRooms] Venue ID: #{venue_id}"
-      
+
       @last_method = :request_reservation
       @last_args = [venue_id, params]
-      
+
       request_url = "#{@api_url}/concierge/#{concierge_id}/venues/#{venue_id}/request"
-      
-      puts "[SevenRooms] Request Reservation Details:"
-      puts "[SevenRooms] Method: PUT"
+
+      puts '[SevenRooms] Request Reservation Details:'
+      puts '[SevenRooms] Method: PUT'
       puts "[SevenRooms] URL: #{request_url}"
       puts "[SevenRooms] Headers: #{default_headers.inspect}"
       puts "[SevenRooms] Body: #{params.inspect}"
-      
+
       response = make_request(:put, request_url, params)
       handle_response(response)
     end
@@ -137,41 +134,41 @@ module Sevenrooms
       puts "\n[SevenRooms] Authenticating..."
       puts "[SevenRooms] Using client ID: #{client_id}"
       puts "[SevenRooms] API URL: #{@api_url}"
-      
+
       auth_url = "#{@api_url}/auth"
       auth_headers = default_headers
       auth_body = {
         client_id: client_id,
         client_secret: client_secret
       }
-      
-      puts "[SevenRooms] Authentication Request Details:"
-      puts "[SevenRooms] Method: POST"
+
+      puts '[SevenRooms] Authentication Request Details:'
+      puts '[SevenRooms] Method: POST'
       puts "[SevenRooms] Full URL: #{auth_url}"
       puts "[SevenRooms] Headers: #{auth_headers.inspect}"
       puts "[SevenRooms] Body: #{auth_body.inspect}"
-      
+
       begin
         puts "[SevenRooms] Making request to: #{auth_url}"
         response = make_request(:post, auth_url, auth_body)
-        
-        puts "[SevenRooms] Raw Response:"
+
+        puts '[SevenRooms] Raw Response:'
         puts "[SevenRooms] Status: #{response.code}"
         puts "[SevenRooms] Headers: #{response.to_hash.inspect}"
         puts "[SevenRooms] Body: #{response.body.inspect}"
 
         handle_response(response)
-        
+
         if response.code == '200'
           body = JSON.parse(response.body)
           if body['data'] && body['data']['token']
             @token = body['data']['token']
-            puts "[SevenRooms] Authentication successful"
-            puts "[SevenRooms] Token received and stored"
+            puts '[SevenRooms] Authentication successful'
+            puts '[SevenRooms] Token received and stored'
             puts "[SevenRooms] Token expiration: #{body['data']['token_expiration_datetime']}"
           else
-            puts "[SevenRooms] Authentication failed: No token in response"
-            raise APIError, "Authentication failed: No token in response"
+            puts '[SevenRooms] Authentication failed: No token in response'
+            raise APIError, 'Authentication failed: No token in response'
           end
         else
           puts "[SevenRooms] Authentication failed: #{response.body}"
@@ -225,27 +222,27 @@ module Sevenrooms
       puts "\n[SevenRooms] Handling response..."
       puts "[SevenRooms] Status: #{response.code}"
       puts "[SevenRooms] Body: #{response.body.inspect}"
-      
+
       body = JSON.parse(response.body)
-      
+
       case response.code.to_i
       when 200..299
-        puts "[SevenRooms] Request successful"
+        puts '[SevenRooms] Request successful'
         body
       when 400
         error_message = body['msg'] || body['message'] || 'Unknown error'
         puts "[SevenRooms] Error: Bad Request - #{error_message}"
         raise APIError, "Bad Request: #{error_message}"
       when 401
-        puts "[SevenRooms] Unauthorized - Token may have expired"
+        puts '[SevenRooms] Unauthorized - Token may have expired'
         if @retried_auth.nil?
-          puts "[SevenRooms] Attempting to re-authenticate..."
+          puts '[SevenRooms] Attempting to re-authenticate...'
           @retried_auth = true
           authenticate!
-          puts "[SevenRooms] Retrying original request..."
-          return send(@last_method, *@last_args)
+          puts '[SevenRooms] Retrying original request...'
+          send(@last_method, *@last_args)
         else
-          puts "[SevenRooms] Re-authentication failed"
+          puts '[SevenRooms] Re-authentication failed'
           raise APIError, "Unauthorized: #{body['msg'] || body['message']}"
         end
       when 403
@@ -274,11 +271,12 @@ module Sevenrooms
 
     def validate_configuration!
       puts "\n[SevenRooms] Validating configuration..."
-      raise ConfigurationError, "client_id is required" if @client_id.nil? || @client_id.empty?
-      raise ConfigurationError, "client_secret is required" if @client_secret.nil? || @client_secret.empty?
-      raise ConfigurationError, "concierge_id is required" if @concierge_id.nil? || @concierge_id.empty?
-      raise ConfigurationError, "api_url is required" if @api_url.nil? || @api_url.empty?
-      puts "[SevenRooms] Configuration validation successful"
+      raise ConfigurationError, 'client_id is required' if @client_id.nil? || @client_id.empty?
+      raise ConfigurationError, 'client_secret is required' if @client_secret.nil? || @client_secret.empty?
+      raise ConfigurationError, 'concierge_id is required' if @concierge_id.nil? || @concierge_id.empty?
+      raise ConfigurationError, 'api_url is required' if @api_url.nil? || @api_url.empty?
+
+      puts '[SevenRooms] Configuration validation successful'
     end
   end
 end
