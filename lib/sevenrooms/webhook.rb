@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "json"
-require "openssl"
+
 
 module Sevenrooms
   class Webhook
@@ -27,7 +27,7 @@ module Sevenrooms
 
     def handle_event(payload, signature)
       raise Error, "Invalid signature" unless verify_signature(payload, signature)
-      
+
       event = parse_event(payload)
       process_event(event)
     end

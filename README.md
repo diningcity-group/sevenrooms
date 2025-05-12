@@ -64,7 +64,6 @@ client = Sevenrooms::Client.new(
 The gem has the following runtime dependencies:
 - faraday (~> 2.0) - For HTTP requests
 - json (~> 2.6) - For JSON parsing
-- openssl (~> 3.0) - For secure connections
 
 ## Usage
 
