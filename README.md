@@ -89,10 +89,17 @@ reservation = Sevenrooms::Reservation.new(client)
 #### Create a Reservation
 
 ```ruby
-# Required parameters
+# Method 1: Using arrival_time (includes both date and time)
 params = {
   venue_id: 'venue123',
-  arrival_time: '07:00:00 PM',
+  arrival_time: '2024-04-01 07:00:00 PM',  # Format: YYYY-MM-DD HH:MM:SS AM/PM
+  party_size: 4
+}
+
+# Method 2: Using reservation_time (will be split into date and time)
+params = {
+  venue_id: 'venue123',
+  reservation_time: '2024-04-01 07:00:00 PM',  # Format: YYYY-MM-DD HH:MM:SS AM/PM
   party_size: 4
 }
 
