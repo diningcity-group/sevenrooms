@@ -40,14 +40,32 @@ module Sevenrooms
 
     def create(params)
       validate_create_params!(params)
-      response = @client.create_reservation(params[:venue_id], params)
-      self.class.new(response['data'], @client)
+      
+      begin
+        response = @client.create_reservation(params[:venue_id], params)
+        self.class.new(response['data'], @client)
+      rescue Sevenrooms::APIError => e
+        if e.message.include?('No direct availability') && !params[:bypass_availability]
+          raise Sevenrooms::AvailabilityError, "No availability for the requested date and time. Please try a different time slot."
+        else
+          raise
+        end
+      end
     end
 
     def update(params)
       validate_update_params!(params)
-      response = @client.update_reservation(@id, params)
-      self.class.new(response['data'], @client)
+      
+      begin
+        response = @client.update_reservation(@id, params)
+        self.class.new(response['data'], @client)
+      rescue Sevenrooms::APIError => e
+        if e.message.include?('No direct availability') && !params[:bypass_availability]
+          raise Sevenrooms::AvailabilityError, "No availability for the requested date and time. Please try a different time slot."
+        else
+          raise
+        end
+      end
     end
 
     def cancel(reason = nil)
@@ -87,6 +105,9 @@ module Sevenrooms
 
       # Validate phone format if present
       validate_phone_format!(params[:phone]) if params[:phone]
+
+      # Validate date is not in the past
+      validate_future_date!(params[:date]) if params[:date]
     end
 
     def validate_required_params!(params)
@@ -156,6 +177,19 @@ module Sevenrooms
 
       # Validate phone format if present
       validate_phone_format!(params[:phone]) if params[:phone]
+    end
+
+    def validate_future_date!(date)
+      return unless date
+      
+      begin
+        reservation_date = Date.parse(date)
+        if reservation_date < Date.today
+          raise ArgumentError, "Reservation date cannot be in the past"
+        end
+      rescue Date::Error
+        raise ArgumentError, "Invalid date format. Please use YYYY-MM-DD"
+      end
     end
   end
 end 
