@@ -41,6 +41,11 @@ module Sevenrooms
         params.delete(:reservation_time)
       end
 
+      # Format phone number to E.164 format
+      if params[:phone]
+        params[:phone] = format_phone_number(params[:phone])
+      end
+
       request_url = "#{@api_url}/concierge/#{concierge_id}/venues/#{venue_id}/book"
 
       puts '[SevenRooms] Create Reservation Request Details:'
@@ -277,6 +282,19 @@ module Sevenrooms
       raise ConfigurationError, 'api_url is required' if @api_url.nil? || @api_url.empty?
 
       puts '[SevenRooms] Configuration validation successful'
+    end
+
+    def format_phone_number(phone)
+      # Remove all non-digit characters
+      digits = phone.gsub(/\D/, '')
+      
+      # If the number doesn't start with +, add the country code
+      if digits.start_with?('1')
+        "+#{digits}"
+      else
+        # Assuming US/Canada number if no country code
+        "+1#{digits}"
+      end
     end
   end
 end

@@ -126,8 +126,10 @@ Note: When using `reservation_time`, the client will automatically split it into
 Required parameters:
 - `venue_id`: The ID of the venue
 - `party_size`: Number of guests
-- `phone`: Guest's phone number
+- `phone`: Guest's phone number (will be automatically formatted to E.164 format, e.g., "+1234567890")
 - Either `arrival_time` or `reservation_time`: Date and time of the reservation
+
+Note: Phone numbers will be automatically formatted to E.164 format (e.g., "+1234567890"). If the number doesn't include a country code, it will be assumed to be a US/Canada number and "+1" will be added.
 
 #### Update a Reservation
 
