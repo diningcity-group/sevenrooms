@@ -94,7 +94,7 @@ module Sevenrooms
       time_params = [:arrival_time, :reservation_time]
       has_time = time_params.any? { |param| params[param] && !params[param].to_s.empty? }
       
-      required_params = [:venue_id, :party_size]
+      required_params = [:venue_id, :party_size, :phone]
       missing_params = required_params.select { |param| params[param].nil? || params[param].to_s.empty? }
       
       if !has_time

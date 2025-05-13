@@ -94,14 +94,16 @@ You can create a reservation using either `arrival_time` or `reservation_time`. 
 params = {
   venue_id: 'venue123',
   arrival_time: '2024-04-01 07:00:00 PM',  # Format: YYYY-MM-DD HH:MM:SS AM/PM
-  party_size: 4
+  party_size: 4,
+  phone: '123-456-7890'  # Required
 }
 
 # Method 2: Using reservation_time (preferred)
 params = {
   venue_id: 'venue123',
   reservation_time: '2024-04-01 07:00:00 PM',  # Format: YYYY-MM-DD HH:MM:SS AM/PM
-  party_size: 4
+  party_size: 4,
+  phone: '123-456-7890'  # Required
 }
 
 # Optional parameters
@@ -109,7 +111,6 @@ optional_params = {
   first_name: 'John',
   last_name: 'Doe',
   email: 'john@example.com',
-  phone: '123-456-7890',
   notes: 'Window seat preferred',
   external_id: 'your_external_id',
   prepayment: true,
@@ -121,6 +122,12 @@ result = reservation.create(params.merge(optional_params))
 ```
 
 Note: When using `reservation_time`, the client will automatically split it into separate date and time fields for the API request. This is the recommended approach as it provides more flexibility and better handles timezone conversions.
+
+Required parameters:
+- `venue_id`: The ID of the venue
+- `party_size`: Number of guests
+- `phone`: Guest's phone number
+- Either `arrival_time` or `reservation_time`: Date and time of the reservation
 
 #### Update a Reservation
 
