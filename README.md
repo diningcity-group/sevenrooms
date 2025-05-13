@@ -126,10 +126,14 @@ Note: When using `reservation_time`, the client will automatically split it into
 Required parameters:
 - `venue_id`: The ID of the venue
 - `party_size`: Number of guests
-- `phone`: Guest's phone number (will be automatically formatted to E.164 format, e.g., "+1234567890")
+- `phone`: Guest's phone number in international format (e.g., "+852 6446 5065" for Hong Kong, "+1 234 567 8900" for US/Canada)
 - Either `arrival_time` or `reservation_time`: Date and time of the reservation
 
-Note: Phone numbers will be automatically formatted to E.164 format (e.g., "+1234567890"). If the number doesn't include a country code, it will be assumed to be a US/Canada number and "+1" will be added.
+Note: Phone numbers must include the country code in international format (e.g., "+852" for Hong Kong, "+1" for US/Canada). The number will be automatically formatted to E.164 format. Examples:
+- Hong Kong: "+852 6446 5065"
+- US/Canada: "+1 234 567 8900"
+- UK: "+44 20 7123 4567"
+- Australia: "+61 2 8765 4321"
 
 #### Update a Reservation
 

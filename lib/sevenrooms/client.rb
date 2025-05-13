@@ -285,15 +285,19 @@ module Sevenrooms
     end
 
     def format_phone_number(phone)
-      # Remove all non-digit characters
-      digits = phone.gsub(/\D/, '')
+      # Remove all non-digit characters except +
+      digits = phone.gsub(/[^\d+]/, '')
       
-      # If the number doesn't start with +, add the country code
-      if digits.start_with?('1')
+      # If the number already has a + prefix, return as is
+      return digits if digits.start_with?('+')
+      
+      # If the number starts with a country code (e.g., 852 for Hong Kong)
+      if digits.length >= 10
+        # Add + prefix
         "+#{digits}"
       else
-        # Assuming US/Canada number if no country code
-        "+1#{digits}"
+        # If we can't determine the country code, raise an error
+        raise ArgumentError, "Invalid phone number format. Please include country code (e.g., +852 for Hong Kong, +1 for US/Canada)"
       end
     end
   end
