@@ -133,6 +133,25 @@ module Sevenrooms
       handle_response(response)
     end
 
+    def get_venue_availability(venue_id, params)
+      puts "\n[SevenRooms] Getting venue availability..."
+      puts "[SevenRooms] Venue ID: #{venue_id}"
+
+      @last_method = :get_venue_availability
+      @last_args = [venue_id, params]
+
+      request_url = "#{@api_url}/concierge/#{concierge_id}/venues/#{venue_id}/availability/dining"
+
+      puts '[SevenRooms] Get Venue Availability Request Details:'
+      puts '[SevenRooms] Method: GET'
+      puts "[SevenRooms] URL: #{request_url}"
+      puts "[SevenRooms] Headers: #{default_headers.inspect}"
+      puts "[SevenRooms] Params: #{params.inspect}"
+
+      response = make_request(:get, request_url, params)
+      handle_response(response)
+    end
+
     private
 
     def authenticate!
