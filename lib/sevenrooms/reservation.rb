@@ -90,8 +90,16 @@ module Sevenrooms
     end
 
     def validate_required_params!(params)
-      required_params = [:venue_id, :arrival_time, :party_size]
+      # Check for either arrival_time or reservation_time
+      time_params = [:arrival_time, :reservation_time]
+      has_time = time_params.any? { |param| params[param] && !params[param].to_s.empty? }
+      
+      required_params = [:venue_id, :party_size]
       missing_params = required_params.select { |param| params[param].nil? || params[param].to_s.empty? }
+      
+      if !has_time
+        missing_params << 'arrival_time or reservation_time'
+      end
       
       if missing_params.any?
         raise ArgumentError, "Missing required parameters: #{missing_params.join(', ')}"
@@ -109,8 +117,12 @@ module Sevenrooms
     def validate_time_format!(time)
       return unless time
       
-      unless time.match?(/^\d{2}:\d{2}:\d{2}\s+(AM|PM)$/i)
-        raise ArgumentError, "Time must be in format 'HH:MM:SS AM/PM'"
+      # Allow both formats:
+      # 1. HH:MM:SS AM/PM
+      # 2. YYYY-MM-DD HH:MM:SS AM/PM
+      unless time.match?(/^\d{2}:\d{2}:\d{2}\s+(AM|PM)$/i) || 
+             time.match?(/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\s+(AM|PM)$/i)
+        raise ArgumentError, "Time must be in format 'HH:MM:SS AM/PM' or 'YYYY-MM-DD HH:MM:SS AM/PM'"
       end
     end
 

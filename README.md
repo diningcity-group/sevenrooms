@@ -87,15 +87,17 @@ reservation = Sevenrooms::Reservation.new(client)
 
 #### Create a Reservation
 
+You can create a reservation using either `arrival_time` or `reservation_time`. Both parameters accept the same format.
+
 ```ruby
-# Method 1: Using arrival_time (includes both date and time)
+# Method 1: Using arrival_time
 params = {
   venue_id: 'venue123',
   arrival_time: '2024-04-01 07:00:00 PM',  # Format: YYYY-MM-DD HH:MM:SS AM/PM
   party_size: 4
 }
 
-# Method 2: Using reservation_time (will be split into date and time)
+# Method 2: Using reservation_time (preferred)
 params = {
   venue_id: 'venue123',
   reservation_time: '2024-04-01 07:00:00 PM',  # Format: YYYY-MM-DD HH:MM:SS AM/PM
@@ -117,6 +119,8 @@ optional_params = {
 # Create the reservation
 result = reservation.create(params.merge(optional_params))
 ```
+
+Note: When using `reservation_time`, the client will automatically split it into separate date and time fields for the API request. This is the recommended approach as it provides more flexibility and better handles timezone conversions.
 
 #### Update a Reservation
 
