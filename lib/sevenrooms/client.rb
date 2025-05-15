@@ -3,7 +3,6 @@
 require 'net/http'
 require 'uri'
 require 'json'
-require_relative "sevenrooms/errors"
 
 module Sevenrooms
   class ConfigurationError < StandardError; end

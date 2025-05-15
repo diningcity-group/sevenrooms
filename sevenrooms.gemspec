@@ -30,10 +30,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency "faraday", "~> 2.0"
   spec.add_dependency "json", "~> 2.6"
 
-
   # Development dependencies
   spec.add_development_dependency "bundler", "~> 2.0"
   spec.add_development_dependency "rake", "~> 13.0"
-  spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "rubocop", "~> 1.0"
 end
