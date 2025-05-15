@@ -5,7 +5,7 @@ module Sevenrooms
     attr_reader :id, :first_name, :last_name, :email, :phone, :party_size,
                 :reservation_time, :venue_id, :status, :status_code, :reference_code,
                 :client_requests, :booking_policy, :cancellation_policy, :client,
-                :arrival_time, :booked_by, :created, :date, :external_id,
+                :booked_by, :created, :date, :external_id,
                 :prepayment, :prepayment_total, :upgrades
 
     def initialize(attributes = {}, client = nil)
@@ -24,7 +24,6 @@ module Sevenrooms
         @client_requests = attributes['client_requests'] || attributes[:client_requests]
         @booking_policy = attributes['booking_policy'] || attributes[:booking_policy]
         @cancellation_policy = attributes['cancellation_policy'] || attributes[:cancellation_policy]
-        @arrival_time = attributes['arrival_time'] || attributes[:arrival_time]
         @booked_by = attributes['booked_by'] || attributes[:booked_by]
         @created = attributes['created'] || attributes[:created]
         @date = attributes['date'] || attributes[:date]
@@ -81,7 +80,7 @@ module Sevenrooms
 
     def to_h
       {
-        arrival_time: @arrival_time,
+        reservation_time: @reservation_time,
         party_size: @party_size,
         reservation_id: @id,
         status: @status
@@ -98,7 +97,7 @@ module Sevenrooms
       validate_party_size!(params[:party_size])
 
       # Validate time format if present
-      validate_time_format!(params[:arrival_time]) if params[:arrival_time]
+      validate_time_format!(params[:reservation_time]) if params[:reservation_time]
 
       # Validate email format if present
       validate_email_format!(params[:email]) if params[:email]
@@ -111,16 +110,8 @@ module Sevenrooms
     end
 
     def validate_required_params!(params)
-      # Check for either arrival_time or reservation_time
-      time_params = [:arrival_time, :reservation_time]
-      has_time = time_params.any? { |param| params[param] && !params[param].to_s.empty? }
-      
-      required_params = [:venue_id, :party_size, :phone]
+      required_params = [:venue_id, :party_size, :phone, :reservation_time]
       missing_params = required_params.select { |param| params[param].nil? || params[param].to_s.empty? }
-      
-      if !has_time
-        missing_params << 'arrival_time or reservation_time'
-      end
       
       if missing_params.any?
         raise ArgumentError, "Missing required parameters: #{missing_params.join(', ')}"
@@ -170,7 +161,7 @@ module Sevenrooms
       validate_party_size!(params[:party_size]) if params[:party_size]
 
       # Validate time format if present
-      validate_time_format!(params[:arrival_time]) if params[:arrival_time]
+      validate_time_format!(params[:reservation_time]) if params[:reservation_time]
 
       # Validate email format if present
       validate_email_format!(params[:email]) if params[:email]

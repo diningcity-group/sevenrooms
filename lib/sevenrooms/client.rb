@@ -5,6 +5,10 @@ require 'uri'
 require 'json'
 
 module Sevenrooms
+  class ConfigurationError < StandardError; end
+  class APIError < StandardError; end
+  class AvailabilityError < StandardError; end
+
   class Client
     attr_reader :client_id, :client_secret, :concierge_id, :api_url
 
