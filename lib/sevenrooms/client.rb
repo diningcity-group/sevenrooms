@@ -3,6 +3,7 @@
 require 'net/http'
 require 'uri'
 require 'json'
+require_relative "sevenrooms/errors"
 
 module Sevenrooms
   class ConfigurationError < StandardError; end
@@ -12,7 +13,7 @@ module Sevenrooms
   class Client
     attr_reader :client_id, :client_secret, :concierge_id, :api_url
 
-    def initialize(client_id:, client_secret:, concierge_id:, api_url: 'https://demo.sevenrooms.com/api-ext/2_4')
+    def initialize(client_id:, client_secret:, concierge_id: nil, api_url: nil)
       puts "\n[SevenRooms] Initializing client..."
       puts "[SevenRooms] API URL: #{api_url}"
       puts "[SevenRooms] Concierge ID: #{concierge_id}"
@@ -20,7 +21,7 @@ module Sevenrooms
       @client_id = client_id
       @client_secret = client_secret
       @concierge_id = concierge_id
-      @api_url = api_url
+      @api_url = api_url || "https://api.sevenrooms.com/api-ext/v2"
       @retried_auth = nil
 
       # Validate configuration
