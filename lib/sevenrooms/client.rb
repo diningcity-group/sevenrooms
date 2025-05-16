@@ -281,7 +281,7 @@ module Sevenrooms
       end
 
       begin
-        body = JSON.parse(response.body)
+      body = JSON.parse(response.body)
       rescue JSON::ParserError => e
         error_message = "Failed to parse response as JSON: #{e.message}"
         puts "[SevenRooms] Error: #{error_message}"
