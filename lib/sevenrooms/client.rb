@@ -3,6 +3,7 @@
 require 'net/http'
 require 'uri'
 require 'json'
+require 'cgi'
 
 module Sevenrooms
   class ConfigurationError < StandardError; end
@@ -20,7 +21,7 @@ module Sevenrooms
       @client_id = client_id
       @client_secret = client_secret
       @concierge_id = concierge_id
-      @api_url = api_url || "https://api.sevenrooms.com/api-ext/v2"
+      @api_url = api_url || "https://api.sevenrooms.com/api-ext/2_4"
       @retried_auth = nil
 
       # Validate configuration
@@ -216,6 +217,12 @@ module Sevenrooms
 
       case method
       when :get
+        # Add query parameters to URL for GET requests
+        if body
+          # Convert boolean values to strings
+          query_params = body.transform_values { |v| v.is_a?(TrueClass) ? 'true' : v.is_a?(FalseClass) ? 'false' : v }
+          uri.query = URI.encode_www_form(query_params)
+        end
         request = Net::HTTP::Get.new(uri.request_uri)
       when :post
         request = Net::HTTP::Post.new(uri.request_uri)
@@ -228,14 +235,29 @@ module Sevenrooms
       # Set headers
       default_headers.each { |key, value| request[key] = value }
 
-      # Set body if present
-      if body
+      # Set body if present (only for non-GET requests)
+      if body && method != :get
         request['Content-Type'] = 'application/x-www-form-urlencoded'
         request.body = URI.encode_www_form(body)
       end
 
+      # Debug logging
+      puts "\n[SevenRooms] Final Request Details:"
+      puts "[SevenRooms] Method: #{method.upcase}"
+      puts "[SevenRooms] Full URL with query: #{uri.to_s}"
+      puts "[SevenRooms] Headers: #{request.to_hash.inspect}"
+      puts "[SevenRooms] Query string: #{uri.query}"
+
       # Make the request
-      http.request(request)
+      response = http.request(request)
+      
+      # Debug logging
+      puts "\n[SevenRooms] Raw Response:"
+      puts "[SevenRooms] Status: #{response.code}"
+      puts "[SevenRooms] Headers: #{response.to_hash.inspect}"
+      puts "[SevenRooms] Body: #{response.body.inspect}"
+      
+      response
     end
 
     def default_headers
@@ -251,7 +273,20 @@ module Sevenrooms
       puts "[SevenRooms] Status: #{response.code}"
       puts "[SevenRooms] Body: #{response.body.inspect}"
 
-      body = JSON.parse(response.body)
+      # Check if response is HTML
+      if response.body.strip.start_with?('<html')
+        error_message = "Received HTML response instead of JSON. Status: #{response.code}"
+        puts "[SevenRooms] Error: #{error_message}"
+        raise APIError, error_message
+      end
+
+      begin
+        body = JSON.parse(response.body)
+      rescue JSON::ParserError => e
+        error_message = "Failed to parse response as JSON: #{e.message}"
+        puts "[SevenRooms] Error: #{error_message}"
+        raise APIError, error_message
+      end
 
       case response.code.to_i
       when 200..299
