@@ -21,7 +21,7 @@ module Sevenrooms
       @client_id = client_id
       @client_secret = client_secret
       @concierge_id = concierge_id
-      @api_url = api_url || "https://api.sevenrooms.com/api-ext/2_4"
+      @api_url = api_url || "https://demo.sevenrooms.com/api-ext/2_4"
       @retried_auth = nil
 
       # Validate configuration
