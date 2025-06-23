@@ -78,7 +78,7 @@ module Sevenrooms
       puts "[SevenRooms] Headers: #{default_headers.inspect}"
       puts "[SevenRooms] Body: #{params.inspect}"
 
-      response = make_request(:put, request_url, params)
+      response = make_request(:post, request_url, params)
       handle_response(response)
     end
 
