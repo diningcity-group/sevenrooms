@@ -63,14 +63,14 @@ module Sevenrooms
       handle_response(response)
     end
 
-    def update_reservation(reservation_id, params)
+    def update_reservation(reservation_id, venue_id, params)
       puts "\n[SevenRooms] Updating reservation..."
       puts "[SevenRooms] Reservation ID: #{reservation_id}"
 
       @last_method = :update_reservation
-      @last_args = [reservation_id, params]
+      @last_args = [reservation_id, venue_id, params]
 
-      request_url = "#{@api_url}/concierge/#{concierge_id}/reservations/#{reservation_id}"
+      request_url = "#{@api_url}/concierge/#{concierge_id}/venues/#{venue_id}/book"
 
       puts '[SevenRooms] Update Reservation Request Details:'
       puts '[SevenRooms] Method: PUT'
@@ -78,7 +78,7 @@ module Sevenrooms
       puts "[SevenRooms] Headers: #{default_headers.inspect}"
       puts "[SevenRooms] Body: #{params.inspect}"
 
-      response = make_request(:post, request_url, params)
+      response = make_request(:put, request_url, params)
       handle_response(response)
     end
 
