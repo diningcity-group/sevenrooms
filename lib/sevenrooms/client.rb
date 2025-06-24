@@ -63,10 +63,11 @@ module Sevenrooms
       handle_response(response)
     end
 
-    def update_reservation(reservation_id, venue_id, params)
+    def update_reservation(reservation_id, params)
       puts "\n[SevenRooms] Updating reservation..."
       puts "[SevenRooms] Reservation ID: #{reservation_id}"
 
+      venue_id = params.delete(:venue_id)
       @last_method = :update_reservation
       @last_args = [reservation_id, venue_id, params]
 

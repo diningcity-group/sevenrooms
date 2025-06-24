@@ -56,7 +56,7 @@ module Sevenrooms
       validate_update_params!(params)
       
       begin
-        response = @client.update_reservation(@id, params[:venue_id], params)
+        response = @client.update_reservation(@id, params)
         self.class.new(response['data'], @client)
       rescue Sevenrooms::APIError => e
         if e.message.include?('No direct availability') && !params[:bypass_availability]
