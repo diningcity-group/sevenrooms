@@ -1,6 +1,6 @@
 # Sevenrooms
 
-A Ruby gem for interacting with the SevenRooms API v2.4. This gem provides a simple and intuitive interface for managing reservations in SevenRooms.
+A Ruby gem for interacting with the SevenRooms API v2.4. This gem provides a simple and intuitive interface for managing reservations in SevenRooms. API doc: https://concierge-api-docs.sevenrooms.com/
 
 ## Table of Contents
 
@@ -140,13 +140,16 @@ Note: Phone numbers must include the country code in international format (e.g.,
 ```ruby
 # Update specific fields
 reservation.update(
-  arrival_time: '08:00:00 PM',
-  party_size: 6,
-  notes: 'Updated to larger party'
+  venue_id: venue_id,
+  reservation_id: sevenrooms_book_id,
+  date: book.reservation_date.to_s,
+  time: book.reservation_time.to_s(:time),
+  party_size: book.reservation_seats,
+  notes: book.reservation_comment
 )
 
 # Partial updates are supported
-reservation.update(notes: 'Updated notes only')
+reservation.update(reservation_id: sevenrooms_book_id, notes: 'Updated notes only')
 ```
 
 #### Cancel a Reservation
