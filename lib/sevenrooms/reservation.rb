@@ -75,6 +75,7 @@ module Sevenrooms
 
     def get(reservation_id)
       response = @client.get_reservation(reservation_id)
+      @id = reservation_id
       self.class.new(response['data'], @client)
     end
 

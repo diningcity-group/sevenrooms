@@ -67,10 +67,11 @@ module Sevenrooms
       puts "\n[SevenRooms] Updating reservation..."
       puts "[SevenRooms] Reservation ID: #{reservation_id}"
 
+      venue_id = params.delete(:venue_id)
       @last_method = :update_reservation
-      @last_args = [reservation_id, params]
+      @last_args = [reservation_id, venue_id, params]
 
-      request_url = "#{@api_url}/concierge/#{concierge_id}/reservations/#{reservation_id}"
+      request_url = "#{@api_url}/concierge/#{concierge_id}/venues/#{venue_id}/book"
 
       puts '[SevenRooms] Update Reservation Request Details:'
       puts '[SevenRooms] Method: PUT'
