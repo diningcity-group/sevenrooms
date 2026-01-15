@@ -59,7 +59,7 @@ module Sevenrooms
     private
 
     def validate_booking_params!(params)
-      required_fields = %w[venue_id date time party_size first_name last_name email]
+      required_fields = %w[venue_id date time party_size first_name last_name]
       missing_fields = required_fields - params.keys.map(&:to_s)
       
       if missing_fields.any?
