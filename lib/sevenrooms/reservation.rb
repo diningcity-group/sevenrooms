@@ -101,7 +101,7 @@ module Sevenrooms
       validate_time_format!(params[:reservation_time]) if params[:reservation_time]
 
       # Validate email format if present
-      validate_email_format!(params[:email]) if params[:email]
+      # validate_email_format!(params[:email]) if params[:email]
 
       # Validate phone format if present
       validate_phone_format!(params[:phone]) if params[:phone]
