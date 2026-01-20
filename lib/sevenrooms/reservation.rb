@@ -6,7 +6,7 @@ module Sevenrooms
                 :reservation_time, :venue_id, :status, :status_code, :reference_code,
                 :client_requests, :booking_policy, :cancellation_policy, :client,
                 :booked_by, :created, :date, :external_id,
-                :prepayment, :prepayment_total, :upgrades
+                :prepayment, :prepayment_total, :upgrades, :notes, :internal_notes
 
     def initialize(attributes = {}, client = nil)
       if attributes.is_a?(Hash)
